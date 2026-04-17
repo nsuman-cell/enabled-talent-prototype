@@ -1,0 +1,738 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Job Analyzer — Enabled Talent</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=Fraunces:wght@600&display=swap');
+
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'DM Sans',sans-serif;background:#f2ebe3;min-height:100vh;overflow-x:hidden;}
+
+/* NAV */
+.nav{background:#6B2020;padding:0 24px;height:56px;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:100;}
+.nav-logo{font-family:'Fraunces',serif;color:#fff;font-size:17px;letter-spacing:-0.02em;}
+.nav-badge{background:#E07B2A;color:#fff;font-size:10px;font-weight:600;padding:2px 9px;border-radius:20px;letter-spacing:0.04em;}
+.nav-back{margin-right:auto;color:rgba(255,255,255,0.7);font-size:13px;cursor:pointer;display:none;align-items:center;gap:5px;border:none;background:none;padding:0;}
+.nav-back.visible{display:flex;}
+.nav-back:hover{color:#fff;}
+.nav-steps{margin-left:auto;display:flex;gap:6px;align-items:center;}
+.step-dot{width:7px;height:7px;border-radius:50%;background:rgba(255,255,255,0.3);transition:background 0.3s;}
+.step-dot.active{background:#E07B2A;}
+.step-dot.done{background:rgba(255,255,255,0.7);}
+
+/* PAGES */
+.page{display:none;animation:fadeIn 0.3s ease;}
+.page.active{display:block;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+
+/* SHARED */
+.container{max-width:580px;margin:0 auto;padding:24px 16px 48px;}
+.card{background:#fff;border-radius:14px;border:1px solid #e0d8d0;overflow:hidden;margin-bottom:16px;}
+.card-header{background:#6B2020;padding:16px 20px;}
+.card-header h2{font-family:'Fraunces',serif;color:#fff;font-size:18px;font-weight:600;}
+.card-header p{color:rgba(255,255,255,0.7);font-size:13px;margin-top:3px;}
+.card-body{padding:20px;}
+
+/* PAGE 1 — JOB LISTING */
+.job-item{background:#fff;border-radius:12px;border:1px solid #e0d8d0;padding:16px;margin-bottom:12px;cursor:pointer;transition:all 0.2s;position:relative;}
+.job-item:hover{border-color:#6B2020;transform:translateY(-1px);box-shadow:0 4px 16px rgba(107,32,32,0.1);}
+.job-item-top{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;}
+.job-name{font-size:15px;font-weight:600;color:#1a1a1a;}
+.job-company{font-size:12px;color:#999;margin-top:2px;}
+.match-pill{font-size:11px;font-weight:600;padding:3px 10px;border-radius:20px;white-space:nowrap;flex-shrink:0;}
+.match-low{background:#fdf0f0;color:#a32d2d;}
+.match-med{background:#fdf5e0;color:#854f0b;}
+.match-high{background:#f0f8e8;color:#3b6d11;}
+.job-tags{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px;}
+.job-tag{background:#f5f2ee;color:#888;font-size:11px;padding:3px 9px;border-radius:6px;}
+.job-aligns{font-size:12px;color:#bbb;margin-top:8px;display:flex;align-items:center;gap:5px;}
+.job-arrow{position:absolute;right:16px;bottom:16px;color:#E07B2A;font-size:18px;opacity:0;transition:opacity 0.2s;}
+.job-item:hover .job-arrow{opacity:1;}
+.page-title{font-family:'Fraunces',serif;font-size:22px;color:#1a1a1a;margin-bottom:4px;}
+.page-sub{font-size:13px;color:#999;margin-bottom:20px;}
+.filter-row{display:flex;gap:8px;margin-bottom:16px;overflow-x:auto;padding-bottom:4px;}
+.filter-btn{background:#fff;border:1px solid #e0d8d0;border-radius:20px;padding:5px 13px;font-size:12px;color:#888;white-space:nowrap;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all 0.15s;}
+.filter-btn.active{background:#6B2020;color:#fff;border-color:#6B2020;}
+
+/* PAGE 2 — JOB DETAIL */
+.detail-hero{background:#6B2020;padding:24px 20px 20px;}
+.detail-hero h1{font-family:'Fraunces',serif;color:#fff;font-size:22px;}
+.detail-hero p{color:rgba(255,255,255,0.7);font-size:13px;margin-top:4px;}
+.detail-meta{display:flex;gap:10px;margin-top:14px;flex-wrap:wrap;}
+.detail-meta-item{background:rgba(255,255,255,0.15);color:#fff;font-size:11px;padding:4px 10px;border-radius:6px;display:flex;align-items:center;gap:5px;}
+.apply-btn{width:100%;background:#E07B2A;color:#fff;border:none;padding:14px;border-radius:10px;font-size:15px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;margin-bottom:12px;transition:opacity 0.15s;}
+.apply-btn:hover{opacity:0.9;}
+.analyze-btn{width:100%;background:#fff;color:#6B2020;border:2px solid #6B2020;padding:13px;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;margin-bottom:16px;transition:all 0.15s;display:flex;align-items:center;justify-content:center;gap:8px;}
+.analyze-btn:hover{background:#6B2020;color:#fff;}
+.ai-spark{font-size:16px;}
+.section-title{font-size:13px;font-weight:600;color:#aaa;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:10px;}
+.desc-text{font-size:14px;color:#555;line-height:1.7;}
+
+/* PAGE 3 — PROFILE CHECK */
+.profile-section{margin-bottom:20px;}
+.profile-section h3{font-size:14px;font-weight:600;color:#1a1a1a;margin-bottom:10px;}
+.pill-grid{display:flex;gap:8px;flex-wrap:wrap;}
+.pill{background:#f5f2ee;border:1px solid #e0d8d0;border-radius:20px;padding:6px 14px;font-size:13px;color:#666;cursor:pointer;transition:all 0.15s;user-select:none;}
+.pill.active{background:#6B2020;color:#fff;border-color:#6B2020;}
+.pill.warn-pill.active{background:#E07B2A;border-color:#E07B2A;}
+.continue-btn{width:100%;background:#6B2020;color:#fff;border:none;padding:14px;border-radius:10px;font-size:15px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;transition:opacity 0.15s;margin-top:4px;}
+.continue-btn:hover{opacity:0.9;}
+.info-box{background:#FDF5EE;border:1px solid #E8C99A;border-radius:10px;padding:14px;margin-bottom:16px;font-size:13px;color:#854f0b;line-height:1.6;}
+
+/* PAGE 4 — ANALYSIS RESULTS */
+.score-hero{background:#6B2020;padding:24px 20px;}
+.score-hero h2{font-family:'Fraunces',serif;color:#fff;font-size:20px;margin-bottom:16px;}
+.score-circle-row{display:flex;align-items:center;gap:20px;}
+.score-circle{width:80px;height:80px;border-radius:50%;background:rgba(255,255,255,0.15);border:3px solid #E07B2A;display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0;}
+.score-circle .num{font-size:26px;font-weight:700;color:#fff;line-height:1;}
+.score-circle .denom{font-size:11px;color:rgba(255,255,255,0.6);}
+.score-info{color:#fff;}
+.score-info .verdict{font-size:15px;font-weight:600;margin-bottom:4px;}
+.score-info .subdesc{font-size:12px;color:rgba(255,255,255,0.7);line-height:1.5;}
+.bar-bg{height:6px;background:rgba(255,255,255,0.2);border-radius:3px;margin-top:14px;overflow:hidden;}
+.bar-fill{height:100%;border-radius:3px;background:#E07B2A;width:0;transition:width 1.4s ease;}
+.tabs{display:flex;gap:0;margin-bottom:0;border-bottom:1px solid #e0d8d0;}
+.tab{flex:1;padding:12px 8px;font-size:13px;font-weight:600;cursor:pointer;background:#fff;color:#aaa;text-align:center;border:none;border-bottom:2px solid transparent;font-family:'DM Sans',sans-serif;transition:all 0.15s;}
+.tab.active{color:#6B2020;border-bottom-color:#6B2020;}
+.tab-panels{padding:16px;}
+.panel{display:none;}
+.panel.active{display:block;}
+.flag{display:flex;gap:10px;padding:12px 14px;border-radius:10px;margin-bottom:8px;border:1px solid;}
+.flag.good{background:#f0f8e8;border-color:#c0dd97;}
+.flag.warn{background:#fdf5e0;border-color:#f5d78a;}
+.flag.bad{background:#fdf0f0;border-color:#f5c0c0;}
+.flag-icon{font-size:15px;flex-shrink:0;margin-top:1px;}
+.flag.good .flag-icon{color:#3b6d11;}
+.flag.warn .flag-icon{color:#854f0b;}
+.flag.bad .flag-icon{color:#a32d2d;}
+.flag-body strong{font-size:13px;font-weight:600;display:block;margin-bottom:3px;}
+.flag-body p{font-size:12px;line-height:1.55;}
+.flag.good .flag-body{color:#3b6d11;}
+.flag.warn .flag-body{color:#854f0b;}
+.flag.bad .flag-body{color:#a32d2d;}
+.rtip{padding:12px 14px;border-radius:10px;margin-bottom:8px;background:#f9f7f5;border:1px solid #e8e0d8;}
+.rtag{font-size:10px;font-weight:700;padding:2px 9px;border-radius:10px;display:inline-block;margin-bottom:7px;letter-spacing:0.04em;text-transform:uppercase;}
+.rtag.add{background:#f0f8e8;color:#3b6d11;}
+.rtag.emphasize{background:#fdf5e0;color:#854f0b;}
+.rtag.reconsider{background:#fdf0f0;color:#a32d2d;}
+.rtip p{font-size:13px;color:#555;line-height:1.55;}
+.action-row{display:flex;gap:10px;margin-top:4px;}
+.action-btn{flex:1;padding:13px;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all 0.15s;border:none;}
+.btn-primary{background:#E07B2A;color:#fff;}
+.btn-primary:hover{opacity:0.9;}
+.btn-secondary{background:#fff;color:#6B2020;border:2px solid #6B2020 !important;border:none;}
+.btn-secondary:hover{background:#6B2020;color:#fff;}
+
+/* PAGE 5 — RESUME ENHANCER */
+.resume-enhancer-hero{background:#6B2020;padding:24px 20px 20px;}
+.resume-enhancer-hero h1{font-family:'Fraunces',serif;color:#fff;font-size:20px;}
+.resume-enhancer-hero p{color:rgba(255,255,255,0.7);font-size:13px;margin-top:4px;line-height:1.5;}
+.resume-section{margin-bottom:16px;}
+.resume-section-label{font-size:11px;font-weight:700;color:#aaa;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:8px;}
+.resume-field{background:#f9f7f5;border:1px solid #e0d8d0;border-radius:10px;padding:14px;margin-bottom:8px;position:relative;}
+.resume-field-title{font-size:13px;font-weight:600;color:#1a1a1a;margin-bottom:4px;display:flex;align-items:center;gap:8px;}
+.resume-field-text{font-size:13px;color:#666;line-height:1.6;}
+.ai-suggestion{background:#FDF5EE;border:1px solid #E8C99A;border-radius:10px;padding:14px;margin-bottom:8px;}
+.ai-suggestion-label{font-size:10px;font-weight:700;color:#E07B2A;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:6px;display:flex;align-items:center;gap:5px;}
+.ai-suggestion-text{font-size:13px;color:#555;line-height:1.6;}
+.accept-btn{width:100%;background:#fff;color:#3b6d11;border:1.5px solid #c0dd97;padding:9px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;margin-top:8px;transition:all 0.15s;}
+.accept-btn:hover{background:#f0f8e8;}
+.accept-btn.accepted{background:#f0f8e8;color:#3b6d11;border-color:#3b6d11;}
+.skip-link{text-align:center;font-size:12px;color:#bbb;cursor:pointer;margin-bottom:8px;display:block;}
+.skip-link:hover{color:#888;}
+.final-apply-btn{width:100%;background:#E07B2A;color:#fff;border:none;padding:14px;border-radius:10px;font-size:15px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;margin-bottom:8px;transition:opacity 0.15s;}
+.final-apply-btn:hover{opacity:0.9;}
+.change-badge{display:inline-block;background:#f0f8e8;color:#3b6d11;font-size:10px;font-weight:700;padding:2px 7px;border-radius:10px;vertical-align:middle;}
+
+/* PAGE 6 — APPLY SUCCESS */
+.success-page{text-align:center;padding:48px 24px;}
+.success-icon{font-size:56px;margin-bottom:20px;display:block;}
+.success-page h2{font-family:'Fraunces',serif;font-size:24px;color:#1a1a1a;margin-bottom:10px;}
+.success-page p{font-size:14px;color:#888;line-height:1.6;max-width:320px;margin:0 auto 28px;}
+.next-steps{background:#fff;border-radius:12px;border:1px solid #e0d8d0;padding:16px;text-align:left;margin-bottom:16px;}
+.next-steps h3{font-size:13px;font-weight:600;color:#aaa;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:12px;}
+.next-step-item{display:flex;align-items:flex-start;gap:12px;padding:10px 0;border-bottom:1px solid #f0eae3;}
+.next-step-item:last-child{border-bottom:none;padding-bottom:0;}
+.step-num{width:26px;height:26px;border-radius:50%;background:#6B2020;color:#fff;font-size:12px;font-weight:600;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.step-text strong{font-size:13px;font-weight:600;color:#1a1a1a;display:block;}
+.step-text span{font-size:12px;color:#999;}
+.home-btn{width:100%;background:#6B2020;color:#fff;border:none;padding:14px;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;}
+
+/* LOADING */
+.loading-overlay{text-align:center;padding:40px 20px;}
+.loading-dots{display:flex;gap:7px;justify-content:center;margin-bottom:16px;}
+.dot{width:10px;height:10px;border-radius:50%;background:#E07B2A;animation:bounce 1s infinite;}
+.dot:nth-child(2){animation-delay:0.15s;}
+.dot:nth-child(3){animation-delay:0.3s;}
+@keyframes bounce{0%,80%,100%{transform:translateY(0)}40%{transform:translateY(-9px)}}
+.loading-text{font-size:14px;color:#aaa;}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="nav">
+  <button class="nav-back" id="navBack" onclick="goBack()">← Back</button>
+  <span class="nav-logo">Enabled Talent</span>
+  <span class="nav-badge">AI Prototype</span>
+  <div class="nav-steps">
+    <div class="step-dot active" id="dot0"></div>
+    <div class="step-dot" id="dot1"></div>
+    <div class="step-dot" id="dot2"></div>
+    <div class="step-dot" id="dot3"></div>
+    <div class="step-dot" id="dot4"></div>
+    <div class="step-dot" id="dot5"></div>
+  </div>
+</nav>
+
+<!-- PAGE 1: JOB LISTINGS -->
+<div class="page active" id="page0">
+  <div class="container">
+    <div class="page-title">My Jobs</div>
+    <div class="page-sub" id="jobListSub">3 active matches found for your profile</div>
+    <div class="filter-row">
+      <button class="filter-btn active">All</button>
+      <button class="filter-btn">Best Matches</button>
+      <button class="filter-btn">Applied</button>
+      <button class="filter-btn">Accepted</button>
+      <button class="filter-btn">Invites</button>
+    </div>
+    <div id="noMatchMsg" style="display:none;background:#fff;border-radius:12px;border:1px solid #e0d8d0;padding:32px;text-align:center;color:#bbb;font-size:14px;">No jobs above 90% match yet.<br><span style="font-size:12px;">Complete your profile to improve your matches.</span></div>
+
+    <div class="job-item" onclick="goTo(1)">
+      <div class="job-item-top">
+        <div>
+          <div class="job-name">Scheduling Clerk</div>
+          <div class="job-company">Enabled Talent — Testing</div>
+        </div>
+        <span class="match-pill match-low">1% Match</span>
+      </div>
+      <div class="job-tags">
+        <span class="job-tag">📍 960 Notre Dame Ave</span>
+        <span class="job-tag">Full-time</span>
+        <span class="job-tag">Contract</span>
+      </div>
+      <div class="job-aligns">✓ This opportunity aligns with some aspects of your profile</div>
+      <div class="job-arrow">→</div>
+    </div>
+
+    <div class="job-item" onclick="goTo(1, 'Front End Engineer')">
+      <div class="job-item-top">
+        <div>
+          <div class="job-name">Front End Engineer</div>
+          <div class="job-company">Enabled Talent — Testing</div>
+        </div>
+        <span class="match-pill match-med">38% Match</span>
+      </div>
+      <div class="job-tags">
+        <span class="job-tag">📍 Mississauga, ON</span>
+        <span class="job-tag">Full-time</span>
+        <span class="job-tag">Remote</span>
+      </div>
+      <div class="job-aligns">✓ This opportunity aligns with some aspects of your profile</div>
+      <div class="job-arrow">→</div>
+    </div>
+
+    <div class="job-item" onclick="goTo(1, 'Data Analyst', '92')">
+      <div class="job-item-top">
+        <div>
+          <div class="job-name">Data Analyst</div>
+          <div class="job-company">Enabled Talent — Testing</div>
+        </div>
+        <span class="match-pill match-high">92% Match ⭐</span>
+      </div>
+      <div class="job-tags">
+        <span class="job-tag">📍 Remote</span>
+        <span class="job-tag">Part-time</span>
+        <span class="job-tag">Contract</span>
+      </div>
+      <div class="job-aligns">⭐ Excellent match — strong alignment with your skills and accessibility needs</div>
+      <div class="job-arrow">→</div>
+    </div>
+  </div>
+</div>
+
+<!-- PAGE 2: JOB DETAIL -->
+<div class="page" id="page1">
+  <div class="detail-hero">
+    <h1 id="jobTitle">Scheduling Clerk</h1>
+    <p id="jobCompany">Enabled Talent — Testing</p>
+    <div class="detail-meta">
+      <span class="detail-meta-item" id="jobLocation">📍 960 Notre Dame Ave</span>
+      <span class="detail-meta-item" id="jobType">💼 Full-time</span>
+      <span class="detail-meta-item" id="jobContract">📄 Contract</span>
+      <span class="detail-meta-item" id="jobSalary">💰 $123</span>
+    </div>
+  </div>
+  <div id="highMatchBanner" style="display:none;background:#f0f8e8;border-bottom:1px solid #c0dd97;padding:12px 20px;display:flex;align-items:center;gap:10px;">
+    <span style="font-size:20px;">⭐</span>
+    <div>
+      <div style="font-size:13px;font-weight:600;color:#3b6d11;" id="matchBannerTitle">92% profile match</div>
+      <div style="font-size:12px;color:#639922;">This role aligns strongly with your skills and accessibility needs — AI still has tips to push you to 100%</div>
+    </div>
+  </div>
+  <div class="container" style="padding-top:20px;">
+    <button class="apply-btn" onclick="goTo(5)">Apply Now</button>
+    <button class="analyze-btn" onclick="goTo(2)">
+      <span class="ai-spark">✦</span> Analyze this job with AI
+    </button>
+    <div class="section-title">Job description</div>
+    <div class="desc-text" style="margin-bottom:20px;">
+      The Scheduling Clerk is responsible for scheduling shifts for all employees using computerized time and attendance and scheduling software in accordance with Pioneer Manor's Corporate Policies.<br><br>
+      <strong>Main Function:</strong> Schedule shifts for all employees using a computerized time and attendance and scheduling software in accordance with the ONA and CUPE Local 148 Collective Bargaining Agreements.<br><br>
+      <strong>Duties:</strong> Telephone employees on a daily basis to fill vacancies. Process approved post schedule requests including statutory holidays, vacation, days in-lieu, leaves of absence and shift exchanges. Must work in a fast-paced environment and be available on-call.
+    </div>
+  </div>
+</div>
+
+<!-- PAGE 3: PROFILE CHECK -->
+<div class="page" id="page2">
+  <div class="container">
+    <div class="card">
+      <div class="card-header">
+        <h2>✦ Your Accessibility Profile</h2>
+        <p>Confirm your needs so we can analyze this job accurately</p>
+      </div>
+      <div class="card-body">
+        <div class="info-box">
+          We'll compare your profile against this job description to flag potential barriers and tailor resume suggestions just for you.
+        </div>
+        <div class="profile-section">
+          <h3>Disability type</h3>
+          <div class="pill-grid">
+            <span class="pill active" onclick="this.classList.toggle('active')">Sensory</span>
+            <span class="pill" onclick="this.classList.toggle('active')">Physical</span>
+            <span class="pill" onclick="this.classList.toggle('active')">Neurodevelopmental</span>
+            <span class="pill" onclick="this.classList.toggle('active')">Mental health</span>
+            <span class="pill" onclick="this.classList.toggle('active')">Chronic illness</span>
+            <span class="pill" onclick="this.classList.toggle('active')">Prefer not to say</span>
+          </div>
+        </div>
+        <div class="profile-section">
+          <h3>Workplace accommodations needed</h3>
+          <div class="pill-grid">
+            <span class="pill active" onclick="this.classList.toggle('active')">Remote work</span>
+            <span class="pill active" onclick="this.classList.toggle('active')">Flexible schedule</span>
+            <span class="pill" onclick="this.classList.toggle('active')">Assistive technology</span>
+            <span class="pill" onclick="this.classList.toggle('active')">Accessible workspace</span>
+            <span class="pill" onclick="this.classList.toggle('active')">Support person access</span>
+            <span class="pill" onclick="this.classList.toggle('active')">Flexible deadlines</span>
+          </div>
+        </div>
+        <button class="continue-btn" onclick="runAnalysis()">Run AI Analysis →</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- PAGE 3.5: LOADING -->
+<div class="page" id="page3loading" style="display:none;">
+  <div class="container">
+    <div class="loading-overlay">
+      <div class="loading-dots">
+        <div class="dot"></div><div class="dot"></div><div class="dot"></div>
+      </div>
+      <div class="loading-text" id="loadingMsg">Reading job description...</div>
+    </div>
+  </div>
+</div>
+
+<!-- PAGE 4: ANALYSIS RESULTS -->
+<div class="page" id="page3">
+  <div class="score-hero">
+    <h2>AI Analysis Complete</h2>
+    <div class="score-circle-row">
+      <div class="score-circle">
+        <span class="num">42</span>
+        <span class="denom">/100</span>
+      </div>
+      <div class="score-info">
+        <div class="verdict">Moderate accessibility fit</div>
+        <div class="subdesc">2 direct barriers found for your profile. Review before applying.</div>
+      </div>
+    </div>
+    <div class="bar-bg"><div class="bar-fill" id="barFill"></div></div>
+  </div>
+  <div class="card" style="border-radius:0;border-left:none;border-right:none;margin-bottom:0;">
+    <div class="tabs">
+      <button class="tab active" onclick="switchTab('access', this)">Accessibility</button>
+      <button class="tab" onclick="switchTab('resume', this)">Resume tips</button>
+    </div>
+    <div class="tab-panels">
+      <div class="panel active" id="panel-access">
+        <div class="flag bad">
+          <div class="flag-icon">✕</div>
+          <div class="flag-body"><strong>Daily phone calls required</strong><p>Barrier for your sensory disability. Ask if written alternatives (chat, email) are offered before applying.</p></div>
+        </div>
+        <div class="flag bad">
+          <div class="flag-icon">✕</div>
+          <div class="flag-body"><strong>On-call availability expected</strong><p>Conflicts with your flexible schedule need. This must be discussed upfront with the employer.</p></div>
+        </div>
+        <div class="flag warn">
+          <div class="flag-icon">!</div>
+          <div class="flag-body"><strong>"Fast-paced environment"</strong><p>Vague — ask what this means day-to-day. May or may not be a real barrier depending on actual workflow.</p></div>
+        </div>
+        <div class="flag warn">
+          <div class="flag-icon">!</div>
+          <div class="flag-body"><strong>No remote work mentioned</strong><p>Role appears on-site. Your profile prefers remote — worth clarifying before applying.</p></div>
+        </div>
+        <div class="flag good">
+          <div class="flag-icon">✓</div>
+          <div class="flag-body"><strong>Schedule-based role</strong><p>Scheduling work can support flexible hour negotiation — a positive signal worth exploring with the employer.</p></div>
+        </div>
+      </div>
+      <div class="panel" id="panel-resume">
+        <div class="rtip">
+          <span class="rtag add">Add to profile</span>
+          <p>List any scheduling or coordination tools (Excel, Google Calendar, HRIS software). This role is software-heavy — make the connection explicit.</p>
+        </div>
+        <div class="rtip">
+          <span class="rtag emphasize">Emphasize</span>
+          <p>Highlight ability to manage priorities and cross-team communication. The JD mentions daily liaison with supervisors and staff — your profile should reflect this.</p>
+        </div>
+        <div class="rtip">
+          <span class="rtag emphasize">Emphasize</span>
+          <p>Any experience with written or async communication workflows — it shows you can adapt the role's communication style to your needs.</p>
+        </div>
+        <div class="rtip">
+          <span class="rtag reconsider">Reconsider</span>
+          <p>Avoid vague phrases like "strong communicator." Replace with specific examples, especially written or tool-based communication relevant to scheduling.</p>
+        </div>
+
+        <div style="margin-top:16px;padding:16px;background:#fff;border:2px solid #6B2020;border-radius:12px;text-align:center;">
+          <div style="font-size:13px;font-weight:600;color:#1a1a1a;margin-bottom:4px;">✦ Apply all suggestions at once</div>
+          <div style="font-size:12px;color:#aaa;margin-bottom:14px;">AI will update your skills, summary, and experience to match this job in one click</div>
+          <button onclick="addAllWithAI(this)" style="width:100%;background:#6B2020;color:#fff;border:none;padding:13px;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all 0.2s;">✦ Add all with AI</button>
+          <div id="allAddedMsg" style="display:none;margin-top:10px;font-size:13px;color:#3b6d11;font-weight:600;">✓ All suggestions added to your profile!</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="container" style="padding-top:16px;">
+    <div class="action-row">
+      <button class="action-btn btn-secondary" onclick="goTo(1)" style="border:2px solid #6B2020;">← Back to job</button>
+      <button class="action-btn btn-primary" onclick="goTo(5)">Apply now →</button>
+    </div>
+  </div>
+</div>
+
+<!-- PAGE 5: AI RESUME ENHANCER -->
+<div class="page" id="page5">
+  <div class="resume-enhancer-hero">
+    <h1>✦ Enhance your profile</h1>
+    <p id="enhancerSubtitle">AI has tailored suggestions to make your profile stronger for this specific job. Accept the ones you like, then apply.</p>
+  </div>
+  <div id="highMatchNote" style="display:none;background:#f0f8e8;border-bottom:1px solid #c0dd97;padding:12px 20px;">
+    <div style="font-size:13px;font-weight:600;color:#3b6d11;">⭐ You're already a 92% match!</div>
+    <div style="font-size:12px;color:#639922;margin-top:2px;">Even with a high match, these tweaks could make your application stand out from other strong candidates.</div>
+  </div>
+  <div class="container" style="padding-top:20px;">
+
+    <div class="resume-section" id="suggestionSkills">
+      <div class="resume-section-label">Skills</div>
+      <div class="resume-field">
+        <div class="resume-field-title">Current skills on your profile</div>
+        <div class="resume-field-text" id="currentSkills">Communication, Data entry, Microsoft Office, Team collaboration</div>
+      </div>
+      <div class="ai-suggestion">
+        <div class="ai-suggestion-label">✦ AI suggestion</div>
+        <div class="ai-suggestion-text" id="skillSuggestion">Add <strong>scheduling software</strong>, <strong>time & attendance systems</strong>, and <strong>HRIS tools</strong> — this JD specifically mentions computerized scheduling. These keywords will significantly boost your match score.</div>
+        <button class="accept-btn" onclick="acceptSuggestion(this)">+ Accept this suggestion</button>
+      </div>
+    </div>
+
+    <div class="resume-section">
+      <div class="resume-section-label">Summary / About</div>
+      <div class="resume-field">
+        <div class="resume-field-title">Your current summary</div>
+        <div class="resume-field-text" id="currentSummary">Motivated professional with experience in administrative tasks and strong communication skills.</div>
+      </div>
+      <div class="ai-suggestion">
+        <div class="ai-suggestion-label">✦ AI suggestion</div>
+        <div class="ai-suggestion-text" id="summarySuggestion">Reframe as: <strong>"Detail-oriented coordinator with experience managing schedules, processing requests, and communicating across teams — including via written and digital channels."</strong> This mirrors the JD language and highlights your preferred communication style.</div>
+        <button class="accept-btn" onclick="acceptSuggestion(this)">+ Accept this suggestion</button>
+      </div>
+    </div>
+
+    <div class="resume-section">
+      <div class="resume-section-label">Work experience</div>
+      <div class="resume-field">
+        <div class="resume-field-title">Admin Assistant — XYZ Corp</div>
+        <div class="resume-field-text" id="currentExp">Handled office tasks, answered calls, maintained filing systems.</div>
+      </div>
+      <div class="ai-suggestion">
+        <div class="ai-suggestion-label">✦ AI suggestion</div>
+        <div class="ai-suggestion-text" id="expSuggestion">Strengthen this entry: <strong>"Coordinated schedules and managed shift requests for a team of 12, using digital tools to track availability and resolve conflicts efficiently."</strong> Even if approximate, this framing directly echoes the Scheduling Clerk responsibilities.</div>
+        <button class="accept-btn" onclick="acceptSuggestion(this)">+ Accept this suggestion</button>
+      </div>
+    </div>
+
+    <div id="acceptCount" style="text-align:center;font-size:13px;color:#aaa;margin-bottom:16px;">0 suggestions accepted</div>
+
+    <div style="background:#fff;border:1px solid #e0d8d0;border-radius:12px;overflow:hidden;margin-bottom:8px;">
+      <div style="padding:14px 16px;border-bottom:1px solid #f0eae3;cursor:pointer;transition:background 0.15s;" onclick="goTo(6)" onmouseover="this.style.background='#f9f7f5'" onmouseout="this.style.background='#fff'">
+        <div style="display:flex;align-items:center;justify-content:space-between;">
+          <div>
+            <div style="font-size:14px;font-weight:600;color:#1a1a1a;margin-bottom:2px;">✦ Apply with AI-enhanced profile</div>
+            <div style="font-size:12px;color:#aaa;">Use the suggestions you accepted above</div>
+          </div>
+          <span style="background:#E07B2A;color:#fff;font-size:10px;font-weight:700;padding:3px 8px;border-radius:10px;white-space:nowrap;margin-left:10px;">Recommended</span>
+        </div>
+      </div>
+
+      <div style="padding:14px 16px;border-bottom:1px solid #f0eae3;cursor:pointer;transition:background 0.15s;" onclick="goTo(6)" onmouseover="this.style.background='#f9f7f5'" onmouseout="this.style.background='#fff'">
+        <div style="display:flex;align-items:center;justify-content:space-between;">
+          <div>
+            <div style="font-size:14px;font-weight:600;color:#1a1a1a;margin-bottom:2px;">📄 Apply with my original profile</div>
+            <div style="font-size:12px;color:#aaa;">Submit as-is, without any AI changes</div>
+          </div>
+          <span style="color:#bbb;font-size:18px;margin-left:10px;">→</span>
+        </div>
+      </div>
+
+      <div style="padding:14px 16px;cursor:pointer;transition:background 0.15s;" onclick="goBack()" onmouseover="this.style.background='#f9f7f5'" onmouseout="this.style.background='#fff'">
+        <div style="display:flex;align-items:center;justify-content:space-between;">
+          <div>
+            <div style="font-size:14px;font-weight:600;color:#1a1a1a;margin-bottom:2px;">← Go back and review</div>
+            <div style="font-size:12px;color:#aaa;">Return to the job or accessibility analysis</div>
+          </div>
+          <span style="color:#bbb;font-size:18px;margin-left:10px;">→</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- PAGE 6: APPLIED SUCCESS -->
+<div class="page" id="page6">
+  <div class="container">
+    <div class="success-page">
+      <span class="success-icon">🎉</span>
+      <h2>Application sent!</h2>
+      <p>Your enhanced profile has been submitted for Scheduling Clerk. Here's what to do next.</p>
+    </div>
+    <div class="next-steps">
+      <h3>Your next steps</h3>
+      <div class="next-step-item">
+        <div class="step-num">1</div>
+        <div class="step-text">
+          <strong>Prepare your accommodation request</strong>
+          <span>Ask the employer about phone call alternatives and scheduling flexibility upfront</span>
+        </div>
+      </div>
+      <div class="next-step-item">
+        <div class="step-num">2</div>
+        <div class="step-text">
+          <strong>Save your AI-enhanced profile</strong>
+          <span>The suggestions you accepted have been queued — confirm them in your profile settings</span>
+        </div>
+      </div>
+      <div class="next-step-item">
+        <div class="step-num">3</div>
+        <div class="step-text">
+          <strong>Practice with AI Career Coach</strong>
+          <span>Use the existing coach to prep for a scheduling-focused interview</span>
+        </div>
+      </div>
+    </div>
+    <button class="home-btn" onclick="goTo(0)">← Back to My Jobs</button>
+  </div>
+</div>
+
+<script>
+let history = [];
+let currentPage = 0;
+let currentMatch = '1';
+const loadingMsgs = ['Reading job description...', 'Checking your accessibility profile...', 'Detecting potential barriers...', 'Building resume suggestions...'];
+
+const jobData = {
+  'Scheduling Clerk': {
+    match: '1', location: '📍 960 Notre Dame Ave', type: '💼 Full-time', contract: '📄 Contract', salary: '💰 $123',
+    skills: 'Communication, Data entry, Microsoft Office, Team collaboration',
+    skillTip: 'Add <strong>scheduling software</strong>, <strong>time & attendance systems</strong>, and <strong>HRIS tools</strong> — this JD specifically mentions computerized scheduling. These keywords will boost your match score.',
+    summaryTip: 'Reframe as: <strong>"Detail-oriented coordinator with experience managing schedules, processing requests, and communicating across teams — including via written and digital channels."</strong>',
+    expTip: 'Strengthen this entry: <strong>"Coordinated schedules and managed shift requests for a team of 12, using digital tools to track availability and resolve conflicts efficiently."</strong>'
+  },
+  'Front End Engineer': {
+    match: '38', location: '📍 Mississauga, ON', type: '💼 Full-time', contract: '📄 Remote', salary: '💰 $85k',
+    skills: 'HTML, CSS, JavaScript, Communication',
+    skillTip: 'Add <strong>React</strong>, <strong>accessibility standards (WCAG)</strong>, and <strong>responsive design</strong> — all mentioned or implied in this JD. These will push your match significantly higher.',
+    summaryTip: 'Reframe as: <strong>"Front-end developer with experience building accessible, responsive web interfaces using modern JavaScript frameworks."</strong> This directly mirrors what the JD is looking for.',
+    expTip: 'Add specific projects or features you built: <strong>"Developed accessible UI components following WCAG 2.1 standards, improving usability for users with visual impairments."</strong>'
+  },
+  'Data Analyst': {
+    match: '92', location: '📍 Remote', type: '💼 Part-time', contract: '📄 Contract', salary: '💰 $70k',
+    skills: 'Excel, Data analysis, SQL, Reporting, Python basics',
+    skillTip: 'You\'re already a strong match! Add <strong>Tableau or Power BI</strong> and <strong>data storytelling</strong> to stand out from other 90%+ candidates applying for this role.',
+    summaryTip: 'You\'re close — just sharpen it: <strong>"Data analyst specializing in turning complex datasets into clear, actionable insights for cross-functional teams, with experience in remote-first environments."</strong>',
+    expTip: 'Quantify your impact: <strong>"Analyzed datasets of 50,000+ records to identify trends that reduced reporting time by 30%."</strong> Numbers make high-match candidates unforgettable.'
+  }
+};
+
+function goTo(n, jobName, match) {
+  if(jobName) {
+    const data = jobData[jobName] || jobData['Scheduling Clerk'];
+    currentMatch = data.match;
+    document.getElementById('jobTitle').textContent = jobName;
+    document.getElementById('jobLocation').textContent = data.location;
+    document.getElementById('jobType').textContent = data.type;
+    document.getElementById('jobContract').textContent = data.contract;
+    document.getElementById('jobSalary').textContent = data.salary;
+
+    const isHigh = parseInt(data.match) >= 80;
+    const banner = document.getElementById('highMatchBanner');
+    if(isHigh) {
+      banner.style.display = 'flex';
+      document.getElementById('matchBannerTitle').textContent = data.match + '% profile match';
+    } else {
+      banner.style.display = 'none';
+    }
+
+    // Update resume enhancer content
+    document.getElementById('currentSkills').textContent = data.skills;
+    document.getElementById('skillSuggestion').innerHTML = data.skillTip;
+    document.getElementById('summarySuggestion').innerHTML = data.summaryTip;
+    document.getElementById('expSuggestion').innerHTML = data.expTip;
+
+    const highNote = document.getElementById('highMatchNote');
+    if(isHigh) {
+      highNote.style.display = 'block';
+      highNote.querySelector('div').textContent = '⭐ You\'re already a ' + data.match + '% match!';
+    } else {
+      highNote.style.display = 'none';
+    }
+  }
+  history.push(currentPage);
+  showPage(n);
+}
+
+function goBack() {
+  if(history.length > 0) {
+    let prev = history.pop();
+    showPage(prev);
+  }
+}
+
+function showPage(n) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.step-dot').forEach((d,i) => {
+    d.classList.remove('active','done');
+    if(i < n) d.classList.add('done');
+    if(i === n) d.classList.add('active');
+  });
+  document.getElementById('page'+n).classList.add('active');
+  document.getElementById('navBack').classList.toggle('visible', n > 0 && n !== 6);
+  currentPage = n;
+  window.scrollTo(0,0);
+}
+
+let accepted = 0;
+function acceptSuggestion(btn) {
+  if(btn.classList.contains('accepted')) return;
+  btn.classList.add('accepted');
+  btn.textContent = '✓ Accepted';
+  accepted++;
+  document.getElementById('acceptCount').textContent = accepted + ' suggestion' + (accepted > 1 ? 's' : '') + ' accepted';
+}
+
+function addAllWithAI(btn) {
+  btn.textContent = 'Adding...';
+  btn.disabled = true;
+  btn.style.opacity = '0.6';
+  setTimeout(() => {
+    btn.textContent = '✓ All added!';
+    btn.style.background = '#3b6d11';
+    document.getElementById('allAddedMsg').style.display = 'block';
+    document.querySelectorAll('.accept-btn').forEach(b => {
+      if(!b.classList.contains('accepted')) {
+        b.classList.add('accepted');
+        b.textContent = '✓ Accepted';
+        accepted++;
+      }
+    });
+    const countEl = document.getElementById('acceptCount');
+    if(countEl) countEl.textContent = 'All suggestions accepted';
+  }, 1200);
+}
+
+function runAnalysis() {
+  history.push(currentPage);
+  // show loading
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('page3loading').style.display = 'block';
+  document.getElementById('page3loading').classList.add('active');
+  currentPage = 'loading';
+  document.getElementById('navBack').classList.remove('visible');
+
+  let msgIdx = 0;
+  const msgInterval = setInterval(() => {
+    msgIdx = (msgIdx+1) % loadingMsgs.length;
+    document.getElementById('loadingMsg').textContent = loadingMsgs[msgIdx];
+  }, 700);
+
+  setTimeout(() => {
+    clearInterval(msgInterval);
+    document.getElementById('page3loading').style.display = 'none';
+    document.getElementById('page3loading').classList.remove('active');
+    showPage(3);
+    setTimeout(() => {
+      document.getElementById('barFill').style.width = '42%';
+    }, 200);
+  }, 3000);
+}
+
+function switchTab(name, el) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('panel-'+name).classList.add('active');
+}
+
+document.querySelectorAll('.filter-btn').forEach(btn => {
+  btn.addEventListener('click', function() {
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    this.classList.add('active');
+    const filter = this.textContent.trim();
+    const jobs = document.querySelectorAll('.job-item');
+    jobs.forEach(job => {
+      const matchEl = job.querySelector('.match-pill');
+      const matchVal = matchEl ? parseInt(matchEl.textContent) : 0;
+      if(filter === 'Best Matches') {
+        job.style.display = matchVal >= 90 ? 'block' : 'none';
+      } else if(filter === 'All') {
+        job.style.display = matchVal < 90 ? 'block' : 'none';
+      } else {
+        job.style.display = 'block';
+      }
+    });
+    const visibleJobs = Array.from(jobs).filter(j => j.style.display !== 'none');
+    const noResult = document.getElementById('noMatchMsg');
+    if(filter === 'Best Matches') {
+      document.getElementById('jobListSub').textContent = visibleJobs.length + ' job' + (visibleJobs.length !== 1 ? 's' : '') + ' above 90% match for your profile';
+      noResult.style.display = visibleJobs.length === 0 ? 'block' : 'none';
+    } else if(filter === 'All') {
+      document.getElementById('jobListSub').textContent = visibleJobs.length + ' general matches found for your profile';
+      noResult.style.display = 'none';
+    } else {
+      document.getElementById('jobListSub').textContent = '3 active matches found for your profile';
+      noResult.style.display = 'none';
+    }
+  });
+});
+
+// Apply All filter on load
+window.addEventListener('load', () => {
+  const jobs = document.querySelectorAll('.job-item');
+  jobs.forEach(job => {
+    const matchEl = job.querySelector('.match-pill');
+    const matchVal = matchEl ? parseInt(matchEl.textContent) : 0;
+    job.style.display = matchVal < 90 ? 'block' : 'none';
+  });
+  const visible = Array.from(jobs).filter(j => j.style.display !== 'none');
+  document.getElementById('jobListSub').textContent = visible.length + ' general matches found for your profile';
+});
+</script>
+</body>
+</html>
