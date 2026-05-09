@@ -390,20 +390,6 @@ function goTo(n, jobName, match) {
     document.getElementById('jobContract').textContent = data.contract;
     document.getElementById('jobSalary').textContent = data.salary;
 
-    // Reset inline suggestions
-    document.getElementById('inlineSuggestions').style.display = 'none';
-    document.getElementById('applyBtn').style.display = 'block';
-    inlineAccepted = 0;
-    document.getElementById('inlineCount').textContent = '0 suggestions accepted';
-    document.querySelectorAll('#inlineSuggestions button').forEach(b => {
-      if(b.classList.contains('accepted')) {
-        b.classList.remove('accepted');
-        b.textContent = '+ Accept';
-        b.style.background = '#fff';
-        b.style.borderColor = '#c0dd97';
-      }
-    });
-
     const isHigh = parseInt(data.match) >= 80;
     const banner = document.getElementById('highMatchBanner');
     if(isHigh) {
